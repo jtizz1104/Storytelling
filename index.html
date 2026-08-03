@@ -346,6 +346,28 @@
 const CATEGORIES = ["Filosofía","Desarrollo","Marketing","Educación y charlas","Redes sociales"];
 const STORAGE_KEY = "storytelling-posts-v1";
 
+// Capa de almacenamiento: usa window.storage si existe (Claude.ai),
+// y si no, usa localStorage del navegador (para GitHub Pages y otros hostings).
+const storageLayer = (window.storage && typeof window.storage.get === "function")
+  ? window.storage
+  : {
+      get: (key) => {
+        return new Promise((resolve, reject) => {
+          const val = localStorage.getItem(key);
+          if (val === null) { reject(new Error("not found")); return; }
+          resolve({ key, value: val });
+        });
+      },
+      set: (key, value) => {
+        return new Promise((resolve, reject) => {
+          try {
+            localStorage.setItem(key, value);
+            resolve({ key, value });
+          } catch (e) { reject(e); }
+        });
+      }
+    };
+
 const SEED_POSTS = [
   {
     id: "seed-1",
@@ -430,19 +452,19 @@ function mergeNewPosts(){
 }
 
 function loadPosts(){
-  window.storage.get(STORAGE_KEY, false).then(res => {
+  storageLayer.get(STORAGE_KEY, false).then(res => {
     posts = JSON.parse(res.value);
     mergeNewPosts();
     render();
   }).catch(() => {
     posts = [...SEED_POSTS, ...NEW_POSTS];
-    window.storage.set(STORAGE_KEY, JSON.stringify(posts), false).catch(()=>{});
+    storageLayer.set(STORAGE_KEY, JSON.stringify(posts), false).catch(()=>{});
     render();
   });
 }
 
 function savePosts(){
-  window.storage.set(STORAGE_KEY, JSON.stringify(posts), false).catch(()=>{
+  storageLayer.set(STORAGE_KEY, JSON.stringify(posts), false).catch(()=>{
     console.error("No se pudo guardar la entrada.");
   });
 }
