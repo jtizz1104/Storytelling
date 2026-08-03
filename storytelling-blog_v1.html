@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Hilo — un blog sobre storytelling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#211722;
+    --bg-alt:#2b1f2c;
+    --card:#2f2230;
+    --ink:#F3E9DA;
+    --ink-dim:#B6A79D;
+    --ember:#E1793C;
+    --ember-dim:#a85526;
+    --thread:#6FA88D;
+    --gold:#D8B463;
+    --line: rgba(243,233,218,0.14);
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--ember); color:#231522; }
+
+  a{color:var(--ember); text-decoration:none;}
+
+  .wrap{ max-width:920px; margin:0 auto; padding:0 24px 100px; }
+
+  /* HERO */
+  header.hero{ padding:64px 0 0; }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--thread);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:22px;
+  }
+  .eyebrow::before{
+    content:""; width:24px; height:1px; background:var(--thread);
+  }
+  h1.title{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(34px,6vw,58px);
+    line-height:1.08;
+    margin:0 0 22px;
+    letter-spacing:-0.01em;
+  }
+  h1.title em{ font-style:italic; font-weight:500; color:var(--ember); }
+  p.dek{
+    font-size:17px;
+    color:var(--ink-dim);
+    max-width:56ch;
+    margin:0 0 40px;
+  }
+
+  /* narrative arc svg */
+  .arc-wrap{ margin:0 -4px 46px; }
+  .arc-wrap svg{ display:block; width:100%; height:auto; }
+  .arc-path{
+    fill:none; stroke:var(--ember); stroke-width:2;
+    stroke-linecap:round;
+    stroke-dasharray:900;
+    stroke-dashoffset:900;
+    animation:draw 1.6s ease-out forwards;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .arc-path{ animation:none; stroke-dashoffset:0; }
+  }
+  @keyframes draw{ to{ stroke-dashoffset:0; } }
+  .arc-dot{ fill:var(--bg); stroke:var(--gold); stroke-width:2; }
+  .arc-label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    fill:var(--ink-dim);
+    letter-spacing:.06em;
+    text-transform:uppercase;
+  }
+
+  /* NAV / FILTERS */
+  nav.cats{
+    display:flex; flex-wrap:wrap; gap:8px;
+    padding:20px 0 28px;
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    margin-bottom:44px;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .cat-tabs{ display:flex; flex-wrap:wrap; gap:8px; }
+  button.tab{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:.03em;
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--ink-dim);
+    padding:8px 14px;
+    border-radius:100px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  button.tab:hover{ border-color:var(--ember-dim); color:var(--ink); }
+  button.tab.active{
+    background:var(--ember);
+    border-color:var(--ember);
+    color:#241407;
+    font-weight:500;
+  }
+  button.add-btn{
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    background:var(--thread);
+    color:#12241c;
+    border:none;
+    padding:10px 18px;
+    border-radius:100px;
+    cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px;
+    transition:filter .15s ease, transform .1s ease;
+    white-space:nowrap;
+  }
+  button.add-btn:hover{ filter:brightness(1.08); }
+  button.add-btn:active{ transform:scale(0.97); }
+
+  /* POSTS */
+  #empty-state{
+    text-align:center;
+    padding:80px 20px;
+    color:var(--ink-dim);
+  }
+  #empty-state h3{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    font-size:22px;
+    color:var(--ink);
+    margin:0 0 8px;
+  }
+
+  article.post{
+    border-bottom:1px solid var(--line);
+    padding:34px 0;
+    display:grid;
+    grid-template-columns:110px 1fr;
+    gap:26px;
+  }
+  article.post:first-of-type{ padding-top:0; }
+  .post-meta{
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .post-cat{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--gold);
+  }
+  .post-date{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--ink-dim);
+    opacity:.75;
+  }
+  .post-body h2{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:23px;
+    line-height:1.25;
+    margin:0 0 10px;
+    cursor:pointer;
+  }
+  .post-body h2:hover{ color:var(--ember); }
+  .post-excerpt{
+    color:var(--ink-dim);
+    font-size:15px;
+    margin:0 0 12px;
+  }
+  .post-full{
+    display:none;
+    font-size:15.5px;
+    color:var(--ink);
+    white-space:pre-wrap;
+    margin:14px 0 0;
+    padding-top:14px;
+    border-top:1px dashed var(--line);
+  }
+  .post-full.open{ display:block; }
+  .post-actions{
+    display:flex; gap:16px; margin-top:10px;
+  }
+  .link-btn{
+    background:none; border:none; cursor:pointer;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    letter-spacing:.03em;
+    color:var(--thread);
+    padding:0;
+  }
+  .link-btn.danger{ color:#c96a5e; }
+  .link-btn:hover{ text-decoration:underline; }
+
+  @media (max-width:600px){
+    article.post{ grid-template-columns:1fr; gap:8px; }
+    .post-meta{ flex-direction:row; gap:12px; }
+  }
+
+  /* MODAL */
+  .overlay{
+    position:fixed; inset:0; background:rgba(15,10,16,0.72);
+    display:none; align-items:flex-start; justify-content:center;
+    padding:40px 20px; overflow-y:auto; z-index:50;
+  }
+  .overlay.open{ display:flex; }
+  .modal{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    max-width:560px; width:100%;
+    padding:30px 30px 26px;
+  }
+  .modal h3{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:24px;
+    margin:0 0 22px;
+  }
+  .field{ margin-bottom:16px; }
+  .field label{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    margin-bottom:6px;
+  }
+  .field input, .field select, .field textarea{
+    width:100%;
+    background:var(--bg-alt);
+    border:1px solid var(--line);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:14.5px;
+    padding:10px 12px;
+    border-radius:8px;
+    resize:vertical;
+  }
+  .field textarea{ min-height:140px; line-height:1.6; }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:none; border-color:var(--ember);
+  }
+  .modal-actions{
+    display:flex; justify-content:flex-end; gap:10px; margin-top:22px;
+  }
+  .btn-secondary{
+    background:transparent; border:1px solid var(--line); color:var(--ink-dim);
+    padding:10px 18px; border-radius:100px; cursor:pointer; font-family:'Inter';
+    font-size:13px;
+  }
+  .btn-primary{
+    background:var(--ember); border:none; color:#241407;
+    padding:10px 20px; border-radius:100px; cursor:pointer;
+    font-family:'Inter'; font-weight:600; font-size:13px;
+  }
+
+  footer{
+    text-align:center;
+    color:var(--ink-dim);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    padding:40px 0 0;
+    opacity:.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">un blog sobre el arte de contar</div>
+    <h1 class="title">Toda historia que importa <em>tiene la misma columna vertebral.</em></h1>
+    <p class="dek">Un espacio para pensar el storytelling desde su filosofía hasta su oficio, y para ver cómo esa misma estructura vende, enseña y se sostiene en quince segundos de video.</p>
+
+    <div class="arc-wrap">
+      <svg viewBox="0 0 880 140" preserveAspectRatio="none" role="img" aria-label="Curva narrativa: planteamiento, tensión creciente, clímax y resolución">
+        <path class="arc-path" d="M 10 110 C 160 110, 220 100, 300 78 C 400 50, 460 20, 520 18 C 600 16, 660 55, 740 95 C 790 118, 830 122, 870 124"></path>
+        <circle class="arc-dot" cx="10" cy="110" r="4"></circle>
+        <circle class="arc-dot" cx="300" cy="78" r="4"></circle>
+        <circle class="arc-dot" cx="520" cy="18" r="4"></circle>
+        <circle class="arc-dot" cx="870" cy="124" r="4"></circle>
+        <text class="arc-label" x="10" y="132">planteamiento</text>
+        <text class="arc-label" x="280" y="64">tensión</text>
+        <text class="arc-label" x="472" y="12">clímax</text>
+        <text class="arc-label" x="790" y="138">resolución</text>
+      </svg>
+    </div>
+  </header>
+
+  <nav class="cats">
+    <div class="cat-tabs" id="cat-tabs"></div>
+    <button class="add-btn" id="open-modal-btn">+ nueva entrada</button>
+  </nav>
+
+  <main id="posts-container"></main>
+
+  <footer>el hilo — escrito y editado a mano por Jorge Luis Tizziani, una entrada a la vez</footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3>Nueva entrada</h3>
+    <div class="field">
+      <label for="f-title">Título</label>
+      <input id="f-title" type="text" placeholder="Ej: Por qué el conflicto es el motor de toda historia">
+    </div>
+    <div class="field">
+      <label for="f-cat">Categoría</label>
+      <select id="f-cat"></select>
+    </div>
+    <div class="field">
+      <label for="f-content">Contenido</label>
+      <textarea id="f-content" placeholder="Escribe tu entrada. El primer párrafo se usará como extracto."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="cancel-btn">Cancelar</button>
+      <button class="btn-primary" id="save-btn">Publicar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATEGORIES = ["Filosofía","Desarrollo","Marketing","Educación y charlas","Redes sociales"];
+const STORAGE_KEY = "storytelling-posts-v1";
+
+const SEED_POSTS = [
+  {
+    id: "seed-1",
+    title: "Por qué contamos historias antes de explicar",
+    category: "Filosofía",
+    date: "2026-01-12",
+    content: "Antes de tener argumentos, tuvimos historias. Aristóteles ya lo notaba en la Poética: entendemos el mundo por causa y efecto, no por listas de atributos. Un dato dice qué es algo; una historia dice por qué importa.\n\nLa neurociencia le puso números a esa intuición. Cuando alguien escucha una historia con tensión y resolución, su cerebro libera oxitocina y sincroniza su actividad con la del narrador, algo que casi no ocurre con una exposición de datos sueltos. No es un truco retórico: es cómo estamos hechos para procesar sentido.\n\nLa filosofía del storytelling parte de una idea incómoda para cualquier área \"racional\": los hechos no persuaden por sí solos. Necesitan una estructura que los conecte a un deseo, un obstáculo y un cambio. Explicar informa. Contar transforma."
+  },
+  {
+    id: "seed-2",
+    title: "La columna vertebral: planteamiento, conflicto y transformación",
+    category: "Desarrollo",
+    date: "2026-01-19",
+    content: "Toda estructura narrativa útil se reduce a tres movimientos, sin importar si estás escribiendo una novela o un correo de ventas.\n\nPlanteamiento: quién es el protagonista y qué quiere. Sin un deseo concreto no hay historia, solo descripción.\n\nConflicto: qué se interpone entre el protagonista y ese deseo. El conflicto no es decoración, es el motor. Sin obstáculo, no hay tensión; sin tensión, nadie sigue leyendo.\n\nTransformación: qué cambió cuando todo terminó. No el evento externo, sino lo que el protagonista entendió o dejó de creer.\n\nEsta es la lógica detrás de la pirámide de Freytag y del viaje del héroe de Campbell, simplificada a su esqueleto. Cuando una historia falla, casi siempre falla en uno de estos tres puntos: no queda claro qué se quiere, el obstáculo es trivial, o nada cambia al final."
+  },
+  {
+    id: "seed-3",
+    title: "Storytelling en marketing: vender sin parecer que vendes",
+    category: "Marketing",
+    date: "2026-01-26",
+    content: "El error más común en marketing narrativo es poner a la marca como protagonista. La marca casi nunca es el héroe de la historia: es el guía. El héroe es el cliente, con un problema real y un deseo concreto.\n\nEste es el esqueleto que usan los frameworks de storytelling de marca más efectivos: un personaje (el cliente) tiene un problema, encuentra un guía (la marca) que le ofrece un plan, ese plan lo lleva a la acción, y esa acción evita un fracaso y termina en éxito.\n\nLa razón por la que esto funciona mejor que listar características es simple: nadie recuerda una lista de beneficios, pero todos recuerdan una transformación. \"Antes luchaba con esto, ahora ya no\" vende más que cualquier ficha técnica, porque le da al lector un lugar dentro de la historia, no solo información sobre un producto."
+  },
+  {
+    id: "seed-4",
+    title: "Contar para que se entienda: storytelling en el aula y en el escenario",
+    category: "Educación y charlas",
+    date: "2026-02-02",
+    content: "Un concepto abstracto sin ancla se olvida en minutos. Una anécdota bien elegida se recuerda años. Esa es la razón por la que las mejores charlas y clases no empiezan con la definición, empiezan con un caso.\n\nLa estructura clásica de una charla efectiva es casi idéntica a la de una historia: abrir con una tensión concreta (una pregunta, un problema, una anécdota sin resolver), desarrollar la idea central como si fuera la respuesta a esa tensión, y cerrar mostrando cómo esa idea cambia algo en la vida de quien escucha.\n\nEn el aula funciona igual. Explicar la fórmula antes del problema es como contar el final antes del principio: técnicamente correcto, pero nadie se queda pegado. Plantea primero la pregunta que la fórmula resuelve, y la fórmula deja de ser arbitraria."
+  },
+  {
+    id: "seed-5",
+    title: "Micro-historias: contar en quince segundos",
+    category: "Redes sociales",
+    date: "2026-02-09",
+    content: "El storytelling de redes sociales no elimina la estructura clásica, la comprime. Sigues necesitando planteamiento, tensión y resolución, pero tienes segundos, no minutos, para conseguir que alguien se quede.\n\nLa regla no escrita del formato corto es que el gancho ocurre en los primeros tres segundos, no al final del primer párrafo. Si el conflicto no está insinuado desde el primer fotograma o la primera línea, el algoritmo y el pulgar del usuario deciden por ti.\n\nOtra herramienta propia del formato es la serialización: contar una historia en partes a lo largo de varios posts crea el mismo efecto que un cliffhanger de serie. Cada entrega es un mini arco completo, pero deja una pregunta abierta que solo se resuelve siguiendo la cuenta. Es storytelling de toda la vida, con una unidad de tiempo distinta."
+  }
+];
+
+const NEW_POSTS = [
+  {
+    id: "seed-6",
+    title: "El papel de los KPI en las historias digitales",
+    category: "Marketing",
+    date: "2026-02-16",
+    content: "El sistema \"cabeza, corazón, manos y relaciones\" es un excelente método para determinar las ideas de nuestra campaña: aplicar los KPI (indicadores clave de rendimiento) de la vida real para transmitir mensajes con una elevada carga emocional.\n\nExisten decenas de KPI. Necesitaremos creatividad e ingenio para elegir la métrica más adecuada. Algunos ejemplos:\n\n— Tráfico web\n— Duración de la visita web\n— Número de me gusta, comentarios y veces que se ha compartido el contenido\n— Mensajes directos\n— Proporción de clics\n— Menciones en redes sociales\n— Tráfico de referencia\n— Ventas\n— Visualizaciones o duración de la visualización de un vídeo\n— Comentarios de los consumidores\n\nSi tu objetivo es transformar los sentimientos y las creencias que tiene el público sobre tu marca, debes incorporar KPI que tengan bajo control sus emociones. Si quieres mejorar las relaciones, pueden funcionar como KPI el número de seguidores, de comentarios, de interacciones e incluso de llamadas de ventas."
+  },
+  {
+    id: "seed-7",
+    title: "Técnica de storytelling digital: el contenido generado por los usuarios",
+    category: "Redes sociales",
+    date: "2026-02-23",
+    content: "1. Define tu público y tus objetivos\nEste paso fundamental es la base de todo el proyecto. Investiga con detenimiento tus prioridades y las de tu público antes de comenzar.\n\n2. Crea un tema y un mensaje\nCada organización y cada campaña tiene sus propios temas y mensajes. El tema debe recoger la esencia de la voluntad de los creadores. El mensaje debe transmitir esa voluntad de manera concisa y fácil de recordar; en la actualidad contamos con una herramienta poderosa e innovadora: los hashtags. Los hashtags pueden transformar un mensaje que habríamos captado de manera pasiva en un mensaje que se exprese de forma activa, y son capaces de alterar un eslogan estático y de cambiar la manera en la que se transmite.\n\n3. Fomenta la participación\nDebes animar a tus clientes y seguidores de forma activa para que compartan sus historias. Podemos promover la participación con sorteos, concursos o compartiendo ideas o creaciones artísticas de la comunidad. Sin participación, no habrá contenido generado por los usuarios. Utiliza varios canales de marketing para promover tus campañas, como las redes sociales, el correo electrónico o tu página web.\n\n4. Resalta las historias de los usuarios\nComparte y acoge el contenido generado por los usuarios en tus canales de redes sociales y en tu página web. Incluye los comentarios, las fotos, los vídeos y las historias en las que los clientes hablan de los beneficios de tu producto o servicio.\n\n5. Mantén la autenticidad\nObtendrás mejores resultados si el contenido generado por los usuarios es auténtico y no tiene filtros. La autenticidad es esencial, así que evita sobreeditar o alterar el contenido de los usuarios. Este debe mostrar sus historias y experiencias reales.\n\n6. Cuenta sus historias\nNo te limites a publicar el contenido de los usuarios. Por ejemplo, puedes elaborar historias relacionadas con las experiencias de tus clientes y crear entradas en tus blogs, ejemplos prácticos o testimonios en vídeo.\n\n7. Destaca la diversidad\nSi mostramos historias y experiencias diversas, podremos llegar a más personas, que querrán participar porque se sentirán atraídas y representadas por el producto o servicio."
+  },
+  {
+    id: "seed-8",
+    title: "La música en el storytelling digital",
+    category: "Desarrollo",
+    date: "2026-03-02",
+    content: "La música es una poderosa herramienta para el storytelling digital, ya que puede modificar la reacción emocional, el ritmo de la narración y el nivel de atracción de nuestras historias. Un buen uso de la música puede mejorar la experiencia narrativa, la transmisión del mensaje y el impacto de la historia.\n\nDefinir la atmósfera\nLa música marca el tono emocional de una historia. Puede transmitir emoción, tristeza, tensión o alegría. Con la melodía o la banda sonora adecuadas, el narrador podrá dirigir la experiencia emocional del público. Por ejemplo, pensemos en una escena de una película en la que unos ladrones intentan robar un valioso objeto: si utilizamos una banda sonora trepidante y llena de suspense, con cuerdas y percusión dramáticas, podremos transmitir la tensión y la emoción del momento.\n\nReforzar los vínculos\nLa música puede captar la atención del público y atraerlo a nivel emocional. Así, conectarán de forma más profunda con la historia, por lo que se sentirán más vinculados a ella.\n\nCrear hilos narrativos\nLa música funciona también como recurso narrativo. Puede marcar transiciones, anticipar acontecimientos o enfatizar momentos clave de la historia. Por ejemplo, los cambios de música pueden presagiar giros en la trama.\n\nProfundizar en los personajes\nPodemos asociar a los personajes con canciones o melodías concretas para que el público comprenda sus relaciones, emociones y evolución.\n\nMarcar el ritmo\nEl tempo y el ritmo de la música pueden alterar el ritmo de las historias. Puede acelerar y ralentizar la narración, adaptarse al tempo de los elementos visuales y del texto o crear tensión y relajación.\n\nResaltar los elementos culturales y contextuales\nLa música puede transmitir información cultural y contextual. Por ejemplo, si utilizamos música tradicional de una región específica, podremos reforzar la sensación de pertenencia a un lugar y a una época.\n\nFacilitar que se recuerde la historia\nLa música puede hacer que una historia sea más fácil de recordar. El público se acuerda de la melodía de las historias, por lo que recordará más fácilmente el mensaje que queramos transmitir.\n\nMejorar la accesibilidad y la inclusión\nLa música también puede utilizarse para mejorar la accesibilidad de los contenidos digitales. Por ejemplo, si combinamos las descripciones sonoras y los subtítulos con la música, las historias serán más accesibles para las personas con discapacidades visuales o auditivas."
+  },
+  {
+    id: "seed-9",
+    title: "Las imágenes en el storytelling digital",
+    category: "Desarrollo",
+    date: "2026-03-09",
+    content: "Podemos crear historias más personales gracias a las imágenes. El cerebro humano es capaz de procesar las imágenes unas 60.000 veces más rápido que los textos. De este modo, podremos transformar la estructura narrativa y la experiencia general del público si utilizamos imágenes, GIF, vídeos u otros elementos visuales en nuestras historias.\n\nEn resumen, para transmitir conceptos o ideas en pocos segundos, una imagen vale más que mil palabras.\n\nSi utilizamos elementos visuales atractivos de alta calidad en nuestro storytelling, podremos reforzar la influencia y la eficacia de la historia. El público se sentirá más identificado con la narración y recordará más fácilmente los conceptos. En definitiva, la historia tendrá un mayor impacto emocional.\n\nLas imágenes son más fáciles de compartir que las palabras, lo que nos demuestra que los elementos visuales son más efectivos que los textuales. Algunas redes sociales, como Instagram y Pinterest, se asientan sobre el contenido visual. En estas redes, es mucho más probable que se compartan y se hagan virales las imágenes que los textos. Por tanto, el storytelling visual es una valiosa herramienta para las empresas que quieran llegar a más personas y fomentar la participación del público en el storytelling digital.\n\nEvocar emociones\nLas imágenes nos pueden ayudar a transmitir emociones que no habríamos podido expresar solo con palabras. Utilizar elementos visuales interesantes nos conectará rápidamente con las emociones del público.\n\nReforzar los vínculos\nSi el contenido visual es atractivo, el público estará atento a nuestro mensaje y permanecerá más tiempo en nuestra página web o historia digital. Además, mejoraremos nuestra relación con los usuarios y reduciremos las tasas de rebote.\n\nFacilitar que se recuerde la historia\nSi los elementos visuales son relevantes, el público podrá recordar la información y la historia más fácilmente.\n\nComplementar el storytelling\nPodemos utilizar las imágenes para consolidar la narración. Por ejemplo, nos pueden ayudar a contextualizar la historia, a crear una atmósfera específica o a caracterizar a los personajes.\n\nExplicar conceptos\nLos elementos visuales nos pueden ayudar a ilustrar ideas o datos complejos. Gracias a las tablas, los gráficos o las infografías, simplificaremos el contenido y facilitaremos su comprensión.\n\nResaltar los elementos culturales y contextuales\nLas imágenes pueden ambientar las escenas y ofrecer información contextual. En consecuencia, el público se sentirá identificado y se sumergirá en la historia.\n\nCrear una jerarquía visual\nLas imágenes pueden guiar la atención del público y destacar aspectos clave de la historia.\n\nMejorar la accesibilidad\nLas personas con discapacidad podrán acceder a nuestro storytelling digital de forma más sencilla si utilizamos subtítulos y descripciones escritas de las imágenes."
+  }
+];
+
+let posts = [];
+let activeFilter = "Todas";
+
+function mergeNewPosts(){
+  let changed = false;
+  NEW_POSTS.forEach(np => {
+    if(!posts.some(p => p.id === np.id)){
+      posts.push(np);
+      changed = true;
+    }
+  });
+  if(changed) savePosts();
+}
+
+function loadPosts(){
+  window.storage.get(STORAGE_KEY, false).then(res => {
+    posts = JSON.parse(res.value);
+    mergeNewPosts();
+    render();
+  }).catch(() => {
+    posts = [...SEED_POSTS, ...NEW_POSTS];
+    window.storage.set(STORAGE_KEY, JSON.stringify(posts), false).catch(()=>{});
+    render();
+  });
+}
+
+function savePosts(){
+  window.storage.set(STORAGE_KEY, JSON.stringify(posts), false).catch(()=>{
+    console.error("No se pudo guardar la entrada.");
+  });
+}
+
+function formatDate(iso){
+  const d = new Date(iso + "T00:00:00");
+  return d.toLocaleDateString("es-ES", { day:"numeric", month:"short", year:"numeric" });
+}
+
+function excerptOf(content){
+  const first = content.split("\n").find(p => p.trim().length > 0) || "";
+  return first.length > 140 ? first.slice(0,140).trim() + "…" : first;
+}
+
+function renderTabs(){
+  const tabsEl = document.getElementById("cat-tabs");
+  const all = ["Todas", ...CATEGORIES];
+  tabsEl.innerHTML = all.map(cat => `<button class="tab ${cat===activeFilter?'active':''}" data-cat="${cat}">${cat}</button>`).join("");
+  tabsEl.querySelectorAll(".tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeFilter = btn.dataset.cat;
+      render();
+    });
+  });
+}
+
+function render(){
+  renderTabs();
+  const container = document.getElementById("posts-container");
+  const filtered = posts
+    .filter(p => activeFilter === "Todas" || p.category === activeFilter)
+    .sort((a,b) => b.date.localeCompare(a.date));
+
+  if(filtered.length === 0){
+    container.innerHTML = `<div id="empty-state"><h3>Todavía no hay entradas aquí</h3><p>Publica la primera con el botón "+ nueva entrada".</p></div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(p => `
+    <article class="post" data-id="${p.id}">
+      <div class="post-meta">
+        <span class="post-cat">${p.category}</span>
+        <span class="post-date">${formatDate(p.date)}</span>
+      </div>
+      <div class="post-body">
+        <h2 class="toggle-full">${p.title}</h2>
+        <p class="post-excerpt">${excerptOf(p.content)}</p>
+        <div class="post-full">${p.content.replace(/</g,"&lt;")}</div>
+        <div class="post-actions">
+          <button class="link-btn toggle-full">leer completa</button>
+          <button class="link-btn danger delete-btn">eliminar</button>
+        </div>
+      </div>
+    </article>
+  `).join("");
+
+  container.querySelectorAll(".toggle-full").forEach(el => {
+    el.addEventListener("click", () => {
+      const article = el.closest(".post");
+      article.querySelector(".post-full").classList.toggle("open");
+    });
+  });
+  container.querySelectorAll(".delete-btn").forEach(el => {
+    el.addEventListener("click", () => {
+      const id = el.closest(".post").dataset.id;
+      posts = posts.filter(p => p.id !== id);
+      savePosts();
+      render();
+    });
+  });
+}
+
+function openModal(){
+  const sel = document.getElementById("f-cat");
+  sel.innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join("");
+  document.getElementById("f-title").value = "";
+  document.getElementById("f-content").value = "";
+  document.getElementById("overlay").classList.add("open");
+}
+function closeModal(){
+  document.getElementById("overlay").classList.remove("open");
+}
+
+document.getElementById("open-modal-btn").addEventListener("click", openModal);
+document.getElementById("cancel-btn").addEventListener("click", closeModal);
+document.getElementById("overlay").addEventListener("click", e => {
+  if(e.target.id === "overlay") closeModal();
+});
+document.getElementById("save-btn").addEventListener("click", () => {
+  const title = document.getElementById("f-title").value.trim();
+  const category = document.getElementById("f-cat").value;
+  const content = document.getElementById("f-content").value.trim();
+  if(!title || !content) return;
+  const newPost = {
+    id: "p-" + Date.now(),
+    title, category, content,
+    date: new Date().toISOString().slice(0,10)
+  };
+  posts.push(newPost);
+  savePosts();
+  activeFilter = category;
+  closeModal();
+  render();
+});
+
+loadPosts();
+</script>
+
+</body>
+</html>
